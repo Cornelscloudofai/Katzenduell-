@@ -2,11 +2,14 @@
 
 ## Aktueller Stand
 
-Dieses Repository enthält aktuell vor allem eine einzelne, lauffähige HTML-Spielprototyp-Datei:
+Dieses Repository enthält aktuell einen lauffähigen Browser-Spielprototyp mit einer HTML-Einstiegsdatei und schrittweise ausgelagerten Begleitdateien:
 
 - `katzenburg_duell_v132_1x1_mauer_schaeden.html`
+- `styles/katzenburg-duell.css`
+- `scripts/katzenburg-config.js`
+- `scripts/katzenburg-math.js`
 
-Die Datei ist als eigenständiger Browser-Prototyp aufgebaut: HTML, CSS und JavaScript liegen komplett in derselben Datei. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
+Die HTML-Datei bleibt der direkt öffnbare Einstiegspunkt. CSS, Konfigurationsdaten und allgemeine Mathematik-/Matrix-Helfer sind inzwischen in externe Dateien ausgelagert. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
 
 Der Dateiname und der `<title>` sprechen von **„Katzenburg-Duell V132 – 1x1-Mauer-Schäden“**. Innerhalb der sichtbaren HUD-Texte stehen jedoch noch mehrere Verweise auf **V112**. Das deutet darauf hin, dass die Datei funktional weiterentwickelt wurde, die Anzeige-Texte im Spiel aber noch nicht vollständig auf die Dateiversion synchronisiert sind.
 
@@ -19,6 +22,7 @@ Die HTML-Datei ist der zentrale Spielstand und die aktuelle Arbeitsbasis des Pro
 - Spieler können schießen, bauen, reparieren und zwischen Kameraperspektiven wechseln.
 - Die komplette Darstellung läuft über ein WebGL-Canvas.
 - Eingebaute Base64-/JavaScript-Assets ersetzen externe 3D-Asset-Dateien.
+- Allgemeine Vektor-, Zufalls- und Matrixfunktionen liegen in `scripts/katzenburg-math.js`, damit die HTML-Datei weiter entlastet wird.
 
 Kurz gesagt: Die HTML-Datei ist nicht nur eine Webseite, sondern die komplette Spielimplementierung inklusive UI, Rendering, Spielregeln, Assets und Hauptschleife.
 
@@ -75,7 +79,7 @@ Die Datei rendert Terrain, Burgplateaus, Gebäude, Mauern, Waffen, Partikel und 
 
 ## Aktuelle technische Einordnung
 
-- **Projektform:** Einzeldatei-WebGL-Prototyp.
+- **Projektform:** WebGL-Prototyp mit HTML-Einstieg und schrittweise ausgelagerten CSS-/JavaScript-Modulen.
 - **Startpunkt:** `katzenburg_duell_v132_1x1_mauer_schaeden.html` direkt im Browser öffnen.
 - **Build-System:** Nicht vorhanden / derzeit nicht nötig.
 - **Laufzeitabhängigkeit:** Moderner Browser mit WebGL-Unterstützung.
