@@ -1,0 +1,21 @@
+'use strict';
+
+window.KATZENBURG_CONFIG = {
+  weaponTypes: {
+    cannon: { label: 'Kanone', speedMul: 0.68, gravity: 12.8, launchOffset: 4.2, toast: 'Miau-Bumm!' },
+    firecatapult: { label: 'Feuerkatapult', speedMul: 0.78, gravity: 13.8, launchOffset: 3.7, toast: 'Feuerkatapult! 🔥' }
+  },
+
+  types: {
+    wall: { hp: 5, w: 0.85, h: 4.8, d: 0.85, color: [.56, .58, .64], cost: 1, income: 0, repair: 0, heal: 0, icon: '🧱', label: 'Mauer' },
+    tower: { hp: 100, w: 9.0, h: 17.6, d: 9.0, color: [.68, .70, .76], cost: 0, income: 0, repair: 0, heal: 0, icon: '🏰', label: 'Hauptturm' },
+    weapon_tower: { hp: 90, w: 7.2, h: 8.0, d: 7.2, color: [.62, .58, .52], cost: 32, income: 0, repair: 0, heal: 0, icon: '🗼', label: 'Waffenturm' },
+    cannon_weapon: { hp: 28, w: 4.0, h: 2.5, d: 3.0, color: [.20, .20, .22], cost: 22, income: 0, repair: 0, heal: 0, icon: '💣', label: 'Kanone' },
+    catapult_weapon: { hp: 34, w: 5.2, h: 3.3, d: 4.0, color: [.48, .30, .16], cost: 26, income: 0, repair: 0, heal: 0, icon: '🔥', label: 'Katapult' },
+    fish: { hp: 46, w: 3.4, h: 3.2, d: 3.4, color: [.25, .75, .42], cost: 14, income: 1.2, repair: 0, heal: 0, icon: '🐟', label: 'Fischküche' },
+    workshop: { hp: 70, w: 3.8, h: 3.4, d: 3.6, color: [.62, .38, 1.0], cost: 22, income: 0.4, repair: 0, heal: 0, icon: '⚙️', label: 'Werkstatt' },
+    granary: { hp: 62, w: 4.0, h: 3.0, d: 3.7, color: [.84, .70, .36], cost: 25, income: 2.0, repair: 0, heal: 0, icon: '🌾', label: 'Kornspeicher' },
+    barracks: { hp: 82, w: 4.2, h: 3.8, d: 3.8, color: [.64, .46, .32], cost: 24, income: 0.2, repair: 0, heal: 0.5, icon: '🛡️', label: 'Kaserne' },
+    catmint: { hp: 58, w: 3.6, h: 2.8, d: 3.6, color: [.30, .78, .62], cost: 18, income: 0.8, repair: 0, heal: 1, icon: '🌿', label: 'Katzenminze' }
+  }
+};
