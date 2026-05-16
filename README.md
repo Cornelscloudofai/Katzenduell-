@@ -8,8 +8,11 @@ Dieses Repository enthält aktuell einen lauffähigen Browser-Spielprototyp mit 
 - `styles/katzenburg-duell.css`
 - `scripts/katzenburg-config.js`
 - `scripts/katzenburg-math.js`
+- `scripts/katzenburg-terrain.js`
+- `scripts/katzenburg-weapons.js`
+- `scripts/katzenburg-ui.js`
 
-Die HTML-Datei bleibt der direkt öffnbare Einstiegspunkt. CSS, Konfigurationsdaten und allgemeine Mathematik-/Matrix-Helfer sind inzwischen in externe Dateien ausgelagert. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
+Die HTML-Datei bleibt der direkt öffnbare Einstiegspunkt. CSS, Konfigurationsdaten, allgemeine Mathematik-/Matrix-Helfer, Terrain-Helfer, Waffen-/Kamera-Helfer und die statische HUD-/Bedienoberfläche sind inzwischen in externe Dateien ausgelagert. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
 
 Der Dateiname und der `<title>` sprechen von **„Katzenburg-Duell V132 – 1x1-Mauer-Schäden“**. Innerhalb der sichtbaren HUD-Texte stehen jedoch noch mehrere Verweise auf **V112**. Das deutet darauf hin, dass die Datei funktional weiterentwickelt wurde, die Anzeige-Texte im Spiel aber noch nicht vollständig auf die Dateiversion synchronisiert sind.
 
@@ -22,7 +25,7 @@ Die HTML-Datei ist der zentrale Spielstand und die aktuelle Arbeitsbasis des Pro
 - Spieler können schießen, bauen, reparieren und zwischen Kameraperspektiven wechseln.
 - Die komplette Darstellung läuft über ein WebGL-Canvas.
 - Eingebaute Base64-/JavaScript-Assets ersetzen externe 3D-Asset-Dateien.
-- Allgemeine Vektor-, Zufalls- und Matrixfunktionen liegen in `scripts/katzenburg-math.js`, damit die HTML-Datei weiter entlastet wird.
+- Allgemeine Vektor-, Zufalls- und Matrixfunktionen liegen in `scripts/katzenburg-math.js`; Terrain-Helfer liegen in `scripts/katzenburg-terrain.js`; Waffen-/Kamera-Helfer liegen in `scripts/katzenburg-weapons.js`; die statische HUD-/Bedienoberfläche liegt in `scripts/katzenburg-ui.js`, damit die HTML-Datei weiter entlastet wird.
 
 Kurz gesagt: Die HTML-Datei ist nicht nur eine Webseite, sondern die komplette Spielimplementierung inklusive UI, Rendering, Spielregeln, Assets und Hauptschleife.
 
