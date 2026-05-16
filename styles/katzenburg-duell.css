@@ -1,0 +1,970 @@
+:root{
+  --bg:#07101c;--panel:rgba(10,15,24,.78);--panel2:rgba(17,20,26,.92);
+  --line:rgba(255,255,255,.15);--text:#fff6e7;--muted:#b8c3d2;
+  --orange:#ffad5a;--blue:#72d7ff;--gold:#ffd166;--red:#d51f1f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;background:#07101c;color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none;
+}
+#gl{
+  position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#07101c;touch-action:none;
+}
+.topHud{
+  position:fixed;left:10px;right:78px;top:8px;z-index:30;
+  background:rgba(8,13,22,.72);border:1px solid var(--line);border-radius:16px;
+  padding:8px 12px;box-shadow:0 10px 28px rgba(0,0,0,.28);backdrop-filter:blur(8px);
+  text-align:center;
+}
+.topHud .title{font-weight:900;font-size:16px}
+.topHud .sub{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.camBar{
+  position:fixed;left:10px;right:78px;top:58px;z-index:31;
+  display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:5px;
+  border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(7,11,20,.54);
+}
+button{
+  border:0;border-radius:10px;height:28px;font-weight:850;color:#160d04;
+  background:linear-gradient(135deg,#ffe08a,#ffad5a);box-shadow:0 7px 16px rgba(0,0,0,.22);
+}
+button.secondary{background:rgba(255,255,255,.10);color:var(--text);border:1px solid rgba(255,255,255,.13);box-shadow:none}
+button.active{outline:2px solid var(--gold);filter:brightness(1.08)}
+.powerRail{
+  --railLen:min(56vh,360px);
+  position:fixed;right:8px;top:24%;width:30px;height:var(--railLen);z-index:35;
+  border-radius:15px;background:rgba(8,13,22,.50);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 12px 28px rgba(0,0,0,.26);backdrop-filter:blur(8px);
+}
+.powerRail .railLabel{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  font-size:8px;color:var(--muted);writing-mode:vertical-rl;
+}
+.powerRail input[type=range]{
+  position:absolute;left:50%;top:50%;width:calc(var(--railLen) - 42px);height:26px;margin:0;
+  transform:translate(-50%,-50%) rotate(-90deg);accent-color:var(--orange);
+}
+.powerRail input[type=range]::-webkit-slider-runnable-track{
+  height:6px;border-radius:999px;background:rgba(255,255,255,.18);
+}
+.powerRail input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;margin-top:-6px;
+  background:linear-gradient(180deg,#ffe6a8,#ffad5a);box-shadow:0 4px 10px rgba(255,173,90,.35);
+}
+.deck{
+  position:fixed;left:10px;right:46px;bottom:calc(8px + env(safe-area-inset-bottom,0px));height:116px;z-index:40;
+  display:grid;grid-template-columns:minmax(100px,1fr) 136px minmax(100px,1fr);gap:8px;
+  padding:8px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02)),rgba(18,21,27,.92);
+  border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.35);
+}
+.mapBox{
+  position:relative;height:96px;border-radius:14px;background:#07131b;border:1px solid rgba(220,220,200,.20);overflow:hidden;
+}
+.mapBox .miniTitle{
+  position:absolute;top:3px;left:0;right:0;text-align:center;font-size:8px;font-weight:800;color:#dcefd8;
+  text-transform:uppercase;letter-spacing:.04em;z-index:2;
+}
+.mapBox canvas{
+  position:absolute;inset:17px 6px 6px 6px;width:calc(100% - 12px);height:calc(100% - 23px);
+  border-radius:7px;background:#06131b;border:1px solid rgba(120,255,170,.20);
+}
+.console{
+  position:relative;height:100px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;margin-bottom:4px}
+.ang{
+  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center;padding:4px 2px;
+}
+.ang span{display:block;font-size:8px;color:var(--muted);line-height:1.1}
+.ang b{display:block;margin-top:1px;font-size:16px;color:var(--text);line-height:1.15}
+.ring{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:78px;height:78px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,#0c0f15 0 27%,#262932 29% 42%,#10131a 44% 60%,rgba(255,255,255,.08) 61% 64%,#141821 66% 100%);
+  border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 0 20px rgba(0,0,0,.7);
+}
+.pad{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:78px;height:78px;
+  display:grid;grid-template-columns:26px 26px 26px;grid-template-rows:26px 26px 26px;place-items:center;z-index:3;
+}
+.aimBtn,.fireCore{
+  display:flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;min-height:24px;padding:0;margin:0;
+  font-size:12px;line-height:1;border-radius:8px;border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 10px rgba(0,0,0,.28);
+}
+.aimBtn{background:rgba(13,18,26,.90);color:#f5e8c9}
+.aimBtn.up{grid-column:2;grid-row:1}.aimBtn.left{grid-column:1;grid-row:2}.aimBtn.right{grid-column:3;grid-row:2}.aimBtn.down{grid-column:2;grid-row:3}
+.fireCore{
+  grid-column:2;grid-row:2;border-radius:50%;font-size:0;
+  background:radial-gradient(circle at 35% 35%,#ff9f9f,#d01818 65%,#7e0909 100%);color:#fff;
+  box-shadow:0 0 0 2px rgba(255,255,255,.10),0 6px 16px rgba(208,24,24,.45);
+}
+.cross{
+  position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:88px;height:88px;z-index:22;pointer-events:none;
+  border:1px solid rgba(255,255,255,.18);border-radius:50%;background:transparent;
+}
+.cross:before,.cross:after{content:"";position:absolute;background:rgba(255,230,150,.78)}
+.cross:before{left:50%;top:12px;width:1px;height:64px}.cross:after{top:50%;left:12px;width:64px;height:1px}
+.cross b{position:absolute;left:50%;top:50%;width:5px;height:5px;transform:translate(-50%,-50%);border-radius:50%;background:#ffd166}
+.toast{
+  position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  z-index:80;max-width:calc(100vw - 88px);padding:8px 12px;border-radius:999px;background:rgba(0,0,0,.58);
+  border:1px solid rgba(255,255,255,.16);font-size:10px;opacity:0;transition:opacity .18s;pointer-events:none;text-align:center;
+}
+.toast.show{opacity:1}
+.error{
+  position:fixed;inset:10px;z-index:9999;display:none;padding:12px;border-radius:14px;background:#331016;color:#fff;
+  border:1px solid rgba(255,255,255,.2);white-space:pre-wrap;font-family:monospace;font-size:12px;overflow:auto;
+}
+@media(max-height:700px){
+  .deck{height:104px}.mapBox{height:84px}.console{height:92px}
+}
+
+.buildPanel{
+  position:fixed;left:10px;right:78px;top:96px;z-index:34;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  padding:7px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(8,13,22,.78);backdrop-filter:blur(10px);
+  box-shadow:0 10px 24px rgba(0,0,0,.28);
+  transition:opacity .18s ease, transform .18s ease;
+}
+.buildPanel.hidden{opacity:0;pointer-events:none;transform:translateY(-6px)}
+.buildChoice{
+  height:42px;padding:4px 6px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  flex-direction:column;
+  font-weight:800;font-size:10px;line-height:1;
+  background:rgba(255,255,255,.10);color:var(--text);
+  border:1px solid rgba(255,255,255,.12);box-shadow:none;
+}
+.buildChoice span{font-size:9px;color:var(--text)}
+.buildChoice small{font-size:9px;color:var(--gold);font-weight:900}
+.buildChoice.active{
+  outline:2px solid rgba(255,209,102,.9);
+  background:linear-gradient(180deg, rgba(255,224,138,.22), rgba(255,173,90,.12));
+}
+.topHud .sub strong{color:#fff1b2}
+.mapBox.buildTarget{
+  box-shadow:0 0 0 2px rgba(255,209,102,.55), inset 0 0 24px rgba(255,209,102,.10);
+}
+
+
+.resourceLine{
+  margin-top:4px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  font-size:12px;
+  font-weight:850;
+  color:#ffe4a6;
+  white-space:nowrap;
+}
+.resourceLine strong{
+  color:#fff7e8;
+}
+@media(max-width:700px){
+  .resourceLine{
+    font-size:10px;
+    gap:6px;
+  }
+}
+
+
+.repairChoice{
+  background:rgba(120,210,255,.12) !important;
+}
+.repairChoice.active{
+  outline:none !important;
+}
+@media(max-width:700px){
+  .buildPanel{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+}
+
+
+.buildTools{
+  position:fixed;
+  left:12px;
+  top:calc(96px + 112px);
+  z-index:36;
+  display:flex;
+  gap:8px;
+  padding:6px;
+  border-radius:14px;
+  background:rgba(8,13,22,.72);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+}
+.buildTools.hidden{
+  display:none;
+}
+.toolBtn{
+  width:38px;
+  height:38px;
+  min-height:38px;
+  padding:0;
+  border-radius:12px;
+  font-size:20px;
+  font-weight:900;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(0,0,0,.28);
+}
+.toolBtn.rotate{
+  background:linear-gradient(135deg,#4a5362,#1d2430);
+  border:1px solid rgba(255,255,255,.18);
+}
+.toolBtn.confirm{
+  background:linear-gradient(135deg,#95ff8a,#20b842);
+  color:#06280d;
+  border:1px solid rgba(255,255,255,.22);
+}
+@media(max-width:700px){
+  .buildTools{
+    left:auto;
+    right:50px;
+    top:104px;
+  }
+}
+
+
+#mapOwn{
+  touch-action:none;
+  cursor:grab;
+}
+#mapOwn:active{
+  cursor:grabbing;
+}
+
+
+body.building #gl{
+  cursor:crosshair;
+}
+
+
+.weaponBar{
+  position:fixed;
+  top:84px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:28;
+  display:flex;
+  gap:8px;
+  padding:6px;
+  border-radius:16px;
+  background:rgba(10,14,24,.72);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(8px);
+}
+.weaponBar button{
+  min-width:96px;
+  font-size:12px;
+  padding:8px 12px;
+}
+.weaponBar button.active{
+  background:linear-gradient(135deg,#ffe08a,#ff7e3a);
+  color:#1a1406;
+}
+@media(max-width:700px){
+  .weaponBar{
+    top:84px;
+    width:auto;
+    max-width:calc(100vw - 24px);
+  }
+  .weaponBar button{
+    min-width:74px;
+    font-size:11px;
+    padding:7px 10px;
+  }
+}
+
+
+.weaponBar .fireHint{
+  color:#ffb16d;
+}
+
+
+/* V58: kompaktere Waffenleiste, damit sie weniger Sichtfläche frisst */
+.weaponBar{
+  transform:translateX(-50%) scale(.92);
+  transform-origin:top center;
+}
+@media(max-width:700px){
+  .weaponBar{
+    top:80px;
+    transform:translateX(-50%) scale(.86);
+  }
+}
+
+
+/* V63: ausziehbares Kamerapanel links */
+.camDrawerHandle{
+  position:fixed;
+  left:0;
+  top:40%;
+  transform:translateY(-50%);
+  z-index:44;
+  width:18px;
+  height:74px;
+  border-radius:0 12px 12px 0;
+  border:1px solid rgba(255,255,255,.18);
+  border-left:none;
+  background:linear-gradient(180deg,rgba(10,18,30,.82),rgba(20,34,52,.68));
+  backdrop-filter:blur(8px);
+  color:#f7ddaa;
+  font-weight:900;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 18px rgba(0,0,0,.25);
+  user-select:none;
+}
+.camDrawer{
+  position:fixed;
+  left:10px;
+  top:40%;
+  transform:translateY(-50%) translateX(-118%);
+  z-index:43;
+  width:112px;
+  padding:10px 10px 12px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(9,16,26,.38),rgba(13,25,38,.22));
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 22px rgba(0,0,0,.22);
+  transition:transform .22s ease, opacity .22s ease;
+  opacity:.2;
+  pointer-events:none;
+}
+.camDrawer.open{
+  transform:translateY(-50%) translateX(0);
+  opacity:1;
+  pointer-events:auto;
+}
+.camDrawer .drawerTitle{
+  text-align:center;
+  font-size:10px;
+  letter-spacing:.08em;
+  font-weight:800;
+  color:rgba(248,224,182,.82);
+  margin-bottom:8px;
+}
+.camPad{
+  position:relative;
+  width:86px;
+  height:86px;
+  margin:0 auto;
+}
+.camPadBtn{
+  position:absolute;
+  width:30px;
+  height:30px;
+  min-width:30px;
+  min-height:30px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.18);
+  background:linear-gradient(180deg,rgba(26,38,56,.82),rgba(12,19,31,.74));
+  color:#fce1ab;
+  font-weight:900;
+  font-size:16px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 5px 14px rgba(0,0,0,.25);
+}
+.camPadBtn:active{
+  transform:scale(.96);
+}
+#camMoveUp{left:28px;top:0}
+#camMoveDown{left:28px;bottom:0}
+#camMoveLeft{left:0;top:28px}
+#camMoveRight{right:0;top:28px}
+.camPadCenter{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.12);
+  background:radial-gradient(circle at 35% 30%,rgba(255,224,160,.35),rgba(25,30,42,.18) 70%);
+}
+@media(max-width:700px){
+  .camDrawerHandle{
+    top:43%;
+    width:17px;
+    height:68px;
+  }
+  .camDrawer{
+    top:43%;
+    left:8px;
+    width:104px;
+    padding:9px 9px 11px;
+  }
+  .camPad{
+    width:82px;
+    height:82px;
+  }
+  .camPadBtn{
+    width:29px;
+    height:29px;
+    min-width:29px;
+    min-height:29px;
+    font-size:15px;
+  }
+  #camMoveUp{left:26.5px}
+  #camMoveDown{left:26.5px}
+  #camMoveLeft{top:26.5px}
+  #camMoveRight{top:26.5px}
+}
+
+
+.camDrawerTools{
+  display:flex;
+  gap:6px;
+  margin-top:9px;
+  justify-content:center;
+}
+.camToolBtn{
+  width:28px;
+  height:28px;
+  min-width:28px;
+  min-height:28px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(26,38,56,.82),rgba(12,19,31,.74));
+  color:#fce1ab;
+  font-weight:800;
+  font-size:15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 5px 14px rgba(0,0,0,.22);
+}
+.camToolBtn.reset{
+  width:34px;
+  min-width:34px;
+  color:#fff1cf;
+}
+.camToolBtn:active{ transform:scale(.96); }
+@media(max-width:700px){
+  .camDrawerTools{ gap:5px; margin-top:8px; }
+  .camToolBtn{ width:27px; height:27px; min-width:27px; min-height:27px; font-size:14px; }
+  .camToolBtn.reset{ width:32px; min-width:32px; }
+}
+
+
+html,body,canvas,button,.hud,.bottomHud,.topHud,.weaponBar,.weaponSelectRow,.camDrawer,.camDrawerHandle,.camPadBtn,.camToolBtn,.card,.badge,.miniMapWrap,.aimPad,.powerWrap,.weaponPill,.tabBtn,.iconBtn,.smallBtn,.buildBtn,.panel,.header{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+}
+body, canvas { touch-action: none; }
+button, .camPadBtn, .camToolBtn, .aimPad, .miniMapWrap, .weaponSelectBtn, .iconBtn { touch-action: manipulation; }
+
+
+/* V66: kleines Waffen-FX-Entwicklerpanel */
+.weaponDevHandle{
+  position:fixed;
+  right:0;
+  top:56%;
+  transform:translateY(-50%);
+  z-index:44;
+  width:18px;
+  height:64px;
+  border-radius:12px 0 0 12px;
+  border:1px solid rgba(255,255,255,.16);
+  border-right:none;
+  background:linear-gradient(180deg,rgba(12,18,29,.70),rgba(18,28,42,.50));
+  color:#ffdda2;
+  font-weight:900;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.65;
+  backdrop-filter:blur(8px);
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
+}
+.weaponDevDrawer{
+  position:fixed;
+  right:8px;
+  top:56%;
+  transform:translateY(-50%) translateX(116%);
+  z-index:43;
+  width:138px;
+  padding:9px 9px 10px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.13);
+  background:linear-gradient(180deg,rgba(9,14,22,.44),rgba(14,24,36,.28));
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 22px rgba(0,0,0,.22);
+  transition:transform .22s ease, opacity .22s ease;
+  opacity:.18;
+  pointer-events:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.weaponDevDrawer.open{
+  transform:translateY(-50%) translateX(0);
+  opacity:1;
+  pointer-events:auto;
+}
+.weaponDevTitle{
+  text-align:center;
+  font-size:9px;
+  letter-spacing:.08em;
+  font-weight:850;
+  color:rgba(255,226,178,.85);
+  margin-bottom:6px;
+}
+.fxRow{
+  display:grid;
+  grid-template-columns:42px 1fr 24px;
+  gap:5px;
+  align-items:center;
+  margin:5px 0;
+  font-size:9px;
+  color:rgba(255,241,215,.86);
+}
+.fxRow input[type=range]{
+  width:100%;
+  height:18px;
+  accent-color:#ffa24b;
+}
+.fxRow b{
+  font-size:9px;
+  color:#ffd99a;
+  text-align:right;
+}
+.fxMiniBtns{
+  display:flex;
+  gap:5px;
+  justify-content:center;
+  margin-top:7px;
+}
+.fxMiniBtns button{
+  min-width:45px;
+  height:24px;
+  min-height:24px;
+  padding:0 6px;
+  font-size:10px;
+  border-radius:8px;
+  background:rgba(255,255,255,.10);
+  color:#ffe0aa;
+}
+@media(max-width:700px){
+  .weaponDevHandle{top:59%; height:58px; width:17px;}
+  .weaponDevDrawer{top:59%; width:130px; right:7px;}
+  .fxRow{grid-template-columns:38px 1fr 22px; font-size:8px;}
+}
+
+
+/* V82: obere Steuerleiste kompakter und entzerrt */
+.topHud{
+  max-width:74vw;
+  padding:8px 12px !important;
+}
+.topHud h1{
+  font-size:clamp(18px,4.4vw,30px) !important;
+  line-height:1.05 !important;
+}
+.status{
+  font-size:clamp(11px,2.7vw,14px) !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.iconbar{
+  gap:6px !important;
+  transform:scale(.90);
+  transform-origin:left top;
+}
+.iconBtn{
+  width:38px !important;
+  height:34px !important;
+  min-width:38px !important;
+  min-height:34px !important;
+  font-size:18px !important;
+}
+.weaponBar{
+  top:92px !important;
+  gap:7px !important;
+  transform:translateX(-50%) scale(.86) !important;
+}
+.weaponBar button{
+  min-width:82px !important;
+  min-height:34px !important;
+  height:34px !important;
+  padding:4px 8px !important;
+  font-size:14px !important;
+}
+@media(max-width:700px){
+  .topHud{
+    left:10px !important;
+    right:auto !important;
+    width:calc(100vw - 156px) !important;
+    max-width:calc(100vw - 156px) !important;
+    padding:7px 10px !important;
+    border-radius:17px !important;
+  }
+  .topHud h1{
+    font-size:20px !important;
+  }
+  .status{
+    font-size:11px !important;
+  }
+  .iconbar{
+    top:72px !important;
+    left:22px !important;
+  }
+  .weaponBar{
+    top:102px !important;
+    left:50% !important;
+    max-width:calc(100vw - 128px);
+    overflow:visible;
+  }
+  .weaponBar button{
+    min-width:74px !important;
+    width:74px !important;
+    font-size:12px !important;
+    border-radius:10px !important;
+  }
+}
+
+
+/* V83: Kamera-Werte-Diagnose */
+.camDebug{
+  position:fixed;
+  left:10px;
+  top:154px;
+  z-index:48;
+  min-width:168px;
+  max-width:235px;
+  padding:8px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(7,12,20,.68);
+  backdrop-filter:blur(8px);
+  color:#ffe3ae;
+  font-size:11px;
+  line-height:1.35;
+  box-shadow:0 8px 20px rgba(0,0,0,.24);
+  pointer-events:none;
+}
+.camDebug b{
+  color:#fff;
+  font-weight:900;
+}
+.camDebug .small{
+  color:rgba(255,235,200,.70);
+  font-size:10px;
+}
+@media(max-width:700px){
+  .camDebug{
+    top:142px;
+    left:8px;
+    max-width:205px;
+    font-size:10px;
+    padding:7px 9px;
+  }
+}
+
+
+/* V86: Preset-Version ohne sichtige Kamera-Debugbox */
+.camDebug{display:none !important;}
+
+
+
+/* V87: oberes Textfeld entfernt, Bedienfelder an den oberen Rand geschoben */
+.topHud{
+  display:none !important;
+}
+.camBar{
+  top:calc(env(safe-area-inset-top,0px) + 6px) !important;
+  left:8px !important;
+  right:8px !important;
+  gap:4px !important;
+  padding:5px !important;
+  border-radius:14px !important;
+  background:rgba(8,12,20,.60) !important;
+  backdrop-filter:blur(8px) !important;
+  transform:none !important;
+}
+.camBar button{
+  min-width:0 !important;
+  width:100% !important;
+  height:29px !important;
+  min-height:29px !important;
+  padding:0 !important;
+  font-size:16px !important;
+  border-radius:10px !important;
+}
+.weaponBar{
+  top:calc(env(safe-area-inset-top,0px) + 44px) !important;
+  left:8px !important;
+  right:8px !important;
+  width:auto !important;
+  max-width:none !important;
+  transform:none !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px !important;
+  padding:5px !important;
+  border-radius:14px !important;
+  background:rgba(8,12,20,.58) !important;
+}
+.weaponBar button{
+  min-width:0 !important;
+  width:100% !important;
+  height:32px !important;
+  min-height:32px !important;
+  padding:4px 6px !important;
+  font-size:12px !important;
+  border-radius:10px !important;
+}
+@media(max-width:700px){
+  .camBar{
+    left:8px !important;
+    right:8px !important;
+    top:calc(env(safe-area-inset-top,0px) + 6px) !important;
+    gap:4px !important;
+    padding:5px !important;
+  }
+  .weaponBar{
+    left:8px !important;
+    right:8px !important;
+    top:calc(env(safe-area-inset-top,0px) + 44px) !important;
+    transform:none !important;
+    gap:5px !important;
+    padding:5px !important;
+  }
+}
+
+
+/* V108: kleine Wirtschafts-Anzeige */
+.economyHud{
+  position:fixed;
+  top:calc(env(safe-area-inset-top,0px) + 82px);
+  left:8px;
+  z-index:46;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  padding:5px 8px;
+  border-radius:12px;
+  background:rgba(8,12,20,.56);
+  border:1px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(7px);
+  color:#ffe8b0;
+  font-size:11px;
+  font-weight:850;
+  box-shadow:0 6px 16px rgba(0,0,0,.22);
+  pointer-events:none;
+}
+.economyHud span{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  white-space:nowrap;
+}
+.economyHud b{
+  color:#fff6d5;
+  font-weight:950;
+}
+.weaponQuickSwitch{
+  position:absolute;
+  left:50%;
+  bottom:-28px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  z-index:6;
+}
+.weaponQuickSwitch button{
+  width:34px;
+  height:24px;
+  min-width:34px;
+  min-height:24px;
+  padding:0;
+  border-radius:9px;
+  font-size:13px;
+  background:rgba(255,255,255,.11);
+  color:#fff4df;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 5px 12px rgba(0,0,0,.28);
+}
+.weaponQuickSwitch button.active{
+  background:linear-gradient(135deg,#ffe08a,#ffad5a);
+  color:#1b1005;
+}
+@media(max-width:700px){
+  .economyHud{
+    top:calc(env(safe-area-inset-top,0px) + 80px);
+    left:7px;
+    font-size:10px;
+    padding:4px 7px;
+    gap:5px;
+  }
+  .weaponQuickSwitch{
+    bottom:-25px;
+    gap:8px;
+  }
+  .weaponQuickSwitch button{
+    width:32px;
+    height:22px;
+    min-width:32px;
+    min-height:22px;
+    font-size:12px;
+  }
+}
+
+
+/* V110: obere Waffenwahl ausblenden, Wechsel unten platzieren */
+.weaponBar{
+  display:none !important;
+}
+.economyHud{
+  top:calc(env(safe-area-inset-top,0px) + 44px) !important;
+}
+.console{
+  overflow:visible !important;
+}
+.weaponQuickSwitch{
+  position:absolute;
+  left:50%;
+  bottom:44px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:42px;
+  z-index:9;
+  pointer-events:auto;
+}
+.weaponQuickSwitch button{
+  width:32px;
+  height:24px;
+  min-width:32px;
+  min-height:24px;
+  padding:0;
+  border-radius:9px;
+  font-size:13px;
+  background:rgba(13,18,26,.90);
+  color:#fff4df;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 5px 12px rgba(0,0,0,.30);
+}
+.weaponQuickSwitch button.active{
+  background:linear-gradient(135deg,#ffe08a,#ffad5a);
+  color:#1b1005;
+}
+@media(max-width:700px){
+  .economyHud{
+    top:calc(env(safe-area-inset-top,0px) + 42px) !important;
+  }
+  .weaponQuickSwitch{
+    bottom:43px;
+    gap:38px;
+  }
+  .weaponQuickSwitch button{
+    width:30px;
+    height:22px;
+    min-width:30px;
+    min-height:22px;
+    font-size:12px;
+  }
+}
+
+
+/* V111: Waffenbuttons weiter nach außen und tiefer, ohne Überlagerung */
+.weaponQuickSwitch{
+  left:50% !important;
+  bottom:26px !important;
+  width:170px !important;
+  transform:translateX(-50%) !important;
+  justify-content:space-between !important;
+  gap:0 !important;
+  pointer-events:auto !important;
+}
+.weaponQuickSwitch button{
+  width:38px !important;
+  height:28px !important;
+  min-width:38px !important;
+  min-height:28px !important;
+  border-radius:11px !important;
+  font-size:15px !important;
+  line-height:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+@media(max-width:700px){
+  .weaponQuickSwitch{
+    bottom:25px !important;
+    width:166px !important;
+  }
+  .weaponQuickSwitch button{
+    width:36px !important;
+    height:27px !important;
+    min-width:36px !important;
+    min-height:27px !important;
+    font-size:14px !important;
+  }
+}
+
+
+/* V112: Firebutton-Fix.
+   Der breite Waffenwechsel-Container darf den roten Feuerknopf nicht blockieren. */
+.weaponQuickSwitch{
+  pointer-events:none !important;
+  z-index:4 !important;
+}
+.weaponQuickSwitch button{
+  pointer-events:auto !important;
+}
+.fireCore{
+  position:relative;
+  z-index:12 !important;
+}
+.aimBtn{
+  position:relative;
+  z-index:8 !important;
+}
+
+
+/* V119: Projektilkamera-Button unten zurück */
+.weaponQuickSwitch{
+  width:188px !important;
+  bottom:25px !important;
+  justify-content:space-between !important;
+  pointer-events:none !important;
+}
+.weaponQuickSwitch button{ pointer-events:auto !important; }
+#flightCamTopBtn_removed{ background:rgba(13,18,26,.90); }
+#flightCamTopBtn_removed.active{
+  background:linear-gradient(135deg,#72d7ff,#ffd166);
+  color:#07101c;
+}
+
+
+
+
+/* V121: oben keine großen Kanone/Katapult-Waffenbuttons mehr.
+   Nur die kompakte obere Icon-Leiste bleibt sichtbar. */
+.weaponBar{
+  display:none !important;
+}
+#flightCamTopBtn{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+}
+#flightCamTopBtn.active{
+  outline:2px solid var(--gold);
+  filter:brightness(1.08);
+  background:linear-gradient(135deg,#72d7ff,#ffd166);
+  color:#07101c;
+}
