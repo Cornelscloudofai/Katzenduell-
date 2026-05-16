@@ -19,6 +19,11 @@ window.KATZENBURG_CONFIG = {
     SCORCH_LIFE: 10
   },
 
+  players: [
+    { name: 'Miau-Reich', color: [1.0, .55, .22], x: -78, z: 0, gold: 25.0, hp: 100, aimYaw: 0, aimPitch: 35, lastIncome: 0.5, weapon: 'cannon', weaponStates: null, catapultAnim: 0, cannonAnim: 0 },
+    { name: 'Schnurr-Imperium', color: [.25, .78, 1.0], x: 78, z: 0, gold: 25.0, hp: 100, aimYaw: 0, aimPitch: 35, lastIncome: 0.5, weapon: 'cannon', weaponStates: null, catapultAnim: 0, cannonAnim: 0 }
+  ],
+
   types: {
     wall: { hp: 5, w: 0.85, h: 4.8, d: 0.85, color: [.56, .58, .64], cost: 1, income: 0, repair: 0, heal: 0, icon: '🧱', label: 'Mauer' },
     tower: { hp: 100, w: 9.0, h: 17.6, d: 9.0, color: [.68, .70, .76], cost: 0, income: 0, repair: 0, heal: 0, icon: '🏰', label: 'Hauptturm' },
