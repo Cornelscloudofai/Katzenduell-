@@ -37,6 +37,10 @@ window.KATZENBURG_CONFIG = {
     CATAPULT_BASE_OFFSET_FROM_CP: 0.20
   },
 
+  build: {
+    BUILD_GRID_UNIT: 0.85
+  },
+
   types: {
     wall: { hp: 5, w: 0.85, h: 4.8, d: 0.85, color: [.56, .58, .64], cost: 1, income: 0, repair: 0, heal: 0, icon: '🧱', label: 'Mauer' },
     tower: { hp: 100, w: 9.0, h: 17.6, d: 9.0, color: [.68, .70, .76], cost: 0, income: 0, repair: 0, heal: 0, icon: '🏰', label: 'Hauptturm' },
