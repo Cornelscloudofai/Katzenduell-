@@ -53,6 +53,12 @@ window.KATZENBURG_CONFIG = {
     terrainSeed: 1
   },
 
+  weaponFx: {
+    initial: { trail: 1, smoke: 1.15, sparks: 1, flame: 1, recoil: 1 },
+    reset: { trail: 1, smoke: 1, sparks: 1, flame: 1, recoil: 1 },
+    drama: { trail: 1.4, smoke: 1.6, sparks: 1.5, flame: 1.25, recoil: 1.15 }
+  },
+
   types: {
     wall: { hp: 5, w: 0.85, h: 4.8, d: 0.85, color: [.56, .58, .64], cost: 1, income: 0, repair: 0, heal: 0, icon: '🧱', label: 'Mauer' },
     tower: { hp: 100, w: 9.0, h: 17.6, d: 9.0, color: [.68, .70, .76], cost: 0, income: 0, repair: 0, heal: 0, icon: '🏰', label: 'Hauptturm' },
