@@ -2,11 +2,13 @@
 
 ## Aktueller Stand
 
-Dieses Repository enthält aktuell vor allem eine einzelne, lauffähige HTML-Spielprototyp-Datei:
+Dieses Repository enthält aktuell einen lauffähigen HTML-Spielprototyp mit ausgelagerten Styles und Konfiguration:
 
 - `katzenburg_duell_v132_1x1_mauer_schaeden.html`
+- `styles/katzenburg-duell.css`
+- `scripts/katzenburg-config.js`
 
-Die Datei ist als eigenständiger Browser-Prototyp aufgebaut: HTML, CSS und JavaScript liegen komplett in derselben Datei. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
+Die HTML-Datei bleibt der Browser-Einstiegspunkt. Styles und statische Spielkonfiguration sind modular ausgelagert; die eingebetteten JavaScript-/Base64-Asset-Blöcke bleiben weiterhin im Spielscript erhalten. Externe Build-Schritte oder Paketverwaltung sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
 
 Der Dateiname und der `<title>` sprechen von **„Katzenburg-Duell V132 – 1x1-Mauer-Schäden“**. Innerhalb der sichtbaren HUD-Texte stehen jedoch noch mehrere Verweise auf **V112**. Das deutet darauf hin, dass die Datei funktional weiterentwickelt wurde, die Anzeige-Texte im Spiel aber noch nicht vollständig auf die Dateiversion synchronisiert sind.
 
@@ -20,7 +22,7 @@ Die HTML-Datei ist der zentrale Spielstand und die aktuelle Arbeitsbasis des Pro
 - Die komplette Darstellung läuft über ein WebGL-Canvas.
 - Eingebaute Base64-/JavaScript-Assets ersetzen externe 3D-Asset-Dateien.
 
-Kurz gesagt: Die HTML-Datei ist nicht nur eine Webseite, sondern die komplette Spielimplementierung inklusive UI, Rendering, Spielregeln, Assets und Hauptschleife.
+Kurz gesagt: Die HTML-Datei ist weiterhin der zentrale Einstiegspunkt für UI, Rendering, Assets und Hauptschleife; CSS und statische Konfiguration liegen inzwischen in separaten Dateien.
 
 ## Wichtige Bestandteile
 
@@ -42,6 +44,7 @@ Der Spielzustand wird komplett im JavaScript gehalten. Dazu gehören unter ander
 - Zwei Spieler mit Startgold, Burg-HP, Waffenstatus, Zielwinkeln und eigenen Blöcken.
 - Wirtschaftswerte wie Grundeinkommen, Gebäudeeinkommen und Goldkosten.
 - Gebäude- und Blocktypen mit Trefferpunkten, Größen, Kosten, Einkommen, Heilung und Symbolen.
+- Konfigurierbare Waffen-, Balance-, Visual-, Build-, Initialzustands- und FX-Preset-Werte in `scripts/katzenburg-config.js`.
 - Waffenlogik für Kanone und Feuerkatapult.
 - Feuer-, Rauch-, Einschlag-, Brandschaden- und Reparaturmechaniken.
 
@@ -75,8 +78,8 @@ Die Datei rendert Terrain, Burgplateaus, Gebäude, Mauern, Waffen, Partikel und 
 
 ## Aktuelle technische Einordnung
 
-- **Projektform:** Einzeldatei-WebGL-Prototyp.
-- **Startpunkt:** `katzenburg_duell_v132_1x1_mauer_schaeden.html` direkt im Browser öffnen.
+- **Projektform:** WebGL-Prototyp mit HTML-Einstiegspunkt, externer CSS-Datei und externer Konfigurationsdatei.
+- **Startpunkt:** `katzenburg_duell_v132_1x1_mauer_schaeden.html` über einen lokalen Webserver oder direkt im Browser öffnen.
 - **Build-System:** Nicht vorhanden / derzeit nicht nötig.
 - **Laufzeitabhängigkeit:** Moderner Browser mit WebGL-Unterstützung.
 - **Persistenz:** Kein dauerhaftes Speichern des Spielstands im Repository erkennbar; der Zustand lebt zur Laufzeit im Browser.
@@ -86,6 +89,6 @@ Die Datei rendert Terrain, Burgplateaus, Gebäude, Mauern, Waffen, Partikel und 
 
 1. **Versionsanzeige vereinheitlichen:** Dateiname und `<title>` nennen V132, während HUD und Status noch V112 anzeigen.
 2. **README aktuell halten:** Bei größeren Gameplay-Änderungen sollte diese Datei kurz angepasst werden.
-3. **Optional modularisieren:** Wenn der Prototyp weiter wächst, könnten CSS, Rendering, Spielregeln, Assets und UI in getrennte Dateien ausgelagert werden.
+3. **Schrittweise weiter modularisieren:** CSS und statische Konfiguration sind bereits ausgelagert; Rendering, Spielregeln, Assets und UI können weiterhin in kleinen Schritten folgen.
 4. **Browser-Test dokumentieren:** Für echte Funktionsprüfung sollte die HTML-Datei in einem WebGL-fähigen Browser geöffnet und kurz angespielt werden.
 5. **Asset-Strategie klären:** Eingebettete Assets machen die Datei portabel, erhöhen aber Größe und Wartungsaufwand.
