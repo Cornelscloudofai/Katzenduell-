@@ -6,6 +6,19 @@ window.KATZENBURG_CONFIG = {
     firecatapult: { label: 'Feuerkatapult', speedMul: 0.78, gravity: 13.8, launchOffset: 3.7, toast: 'Feuerkatapult! 🔥' }
   },
 
+  balance: {
+    BASE_INCOME: 0.5,
+    WALL_DESTROY_GOLD: 7,
+    WALL_REPAIR_COST_PER_HP: 1.2,
+    FIRE_BURN_TURNS: 5,
+    FIRE_BURN_DAMAGE: 1,
+    GROUND_FIRE_TURNS: 5,
+    GROUND_FIRE_RADIUS: 6.0, // ca. 2x2 Rasterfelder
+    GROUND_FIRE_INNER_RADIUS: 3.1,
+    GROUND_FIRE_DAMAGE: 1,
+    SCORCH_LIFE: 10
+  },
+
   types: {
     wall: { hp: 5, w: 0.85, h: 4.8, d: 0.85, color: [.56, .58, .64], cost: 1, income: 0, repair: 0, heal: 0, icon: '🧱', label: 'Mauer' },
     tower: { hp: 100, w: 9.0, h: 17.6, d: 9.0, color: [.68, .70, .76], cost: 0, income: 0, repair: 0, heal: 0, icon: '🏰', label: 'Hauptturm' },
