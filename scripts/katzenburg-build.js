@@ -191,7 +191,6 @@ window.KATZENBURG_BUILD = (() => {
       buildPreview.z=pos.z;
       buildPreview.valid=canPlaceBlock(turn,selectedBuild,buildPreview.x,buildPreview.z,true).ok;
       if(selectedBuild==='wall') computeWallDrawPreview();
-      if(selectedBuild==='wall') computeWallDrawPreview();
     }
 
     function setBuildPreviewFromWorld(x,z){
@@ -243,6 +242,55 @@ window.KATZENBURG_BUILD = (() => {
       buildCam.dist = 64;
     }
 
+
+    function drawBuildGrid(VP,{ drawCube, modelCube, WALL_SEGMENT_GRID }){
+      if(getPhase()!=='build') return;
+      const p=getActive();
+      const area=buildAreaSpan();
+      const minX=p.x-area.x/2, maxX=p.x+area.x/2;
+      const minZ=-area.z/2, maxZ=area.z/2;
+      const fine=BUILD_GRID_UNIT;
+      const major=WALL_SEGMENT_GRID;
+
+      for(let x=Math.ceil(minX/fine)*fine; x<=maxX; x+=fine){
+        const midZ=(minZ+maxZ)*0.5;
+        const isMajor=Math.abs(Math.round((x-p.x)/major)-((x-p.x)/major))<0.05;
+        const y=terrainHeight(x,midZ)+(isMajor?0.075:0.055);
+        drawCube(modelCube(x,y,midZ,isMajor?.040:.018,.026,maxZ-minZ),isMajor?[.92,.75,.24]:[.35,.48,.30],VP);
+      }
+
+      for(let z=Math.ceil(minZ/fine)*fine; z<=maxZ; z+=fine){
+        const midX=(minX+maxX)*0.5;
+        const isMajor=Math.abs(Math.round(z/major)-(z/major))<0.05;
+        const y=terrainHeight(midX,z)+(isMajor?0.077:0.057);
+        drawCube(modelCube(midX,y,z,maxX-minX,.026,isMajor?.040:.018),isMajor?[.92,.75,.24]:[.35,.48,.30],VP);
+      }
+
+      const buildPreview=getBuildPreview();
+      const py=terrainHeight(buildPreview.x,buildPreview.z)+0.16;
+      drawCube(modelCube(buildPreview.x,py,buildPreview.z,.58,.075,.58),[1.0,.84,.18],VP);
+
+      if(getSelectedBuild()==='wall'){
+        const rot=Math.abs(Math.sin(buildPreview.ry||0))>0.5;
+        if(rot){
+          for(let z=buildPreview.z-major*4; z<=buildPreview.z+major*4; z+=major){
+            const y=terrainHeight(buildPreview.x,z)+0.14;
+            drawCube(modelCube(buildPreview.x,y,z,.28,.065,.58),[1,.82,.20],VP);
+          }
+        }else{
+          for(let x=buildPreview.x-major*4; x<=buildPreview.x+major*4; x+=major){
+            const y=terrainHeight(x,buildPreview.z)+0.14;
+            drawCube(modelCube(x,y,buildPreview.z,.58,.065,.28),[1,.82,.20],VP);
+          }
+        }
+      }
+
+      drawCube(modelCube((minX+maxX)/2,terrainHeight(p.x,minZ)+0.13,minZ,maxX-minX,.055,.12),[1,.78,.18],VP);
+      drawCube(modelCube((minX+maxX)/2,terrainHeight(p.x,maxZ)+0.13,maxZ,maxX-minX,.055,.12),[1,.78,.18],VP);
+      drawCube(modelCube(minX,terrainHeight(minX,0)+0.13,0,.12,.055,maxZ-minZ),[1,.78,.18],VP);
+      drawCube(modelCube(maxX,terrainHeight(maxX,0)+0.13,0,.12,.055,maxZ-minZ),[1,.78,.18],VP);
+    }
+
     function panBuildCam(dx,dy){
       // Baukamera: dx horizontal, dy jetzt invertiert für natürliches Hoch/Runter.
       const scale=0.11;
@@ -274,9 +322,386 @@ window.KATZENBURG_BUILD = (() => {
       placeBuildFromSceneEvent,
       placeBuildFromMapEvent,
       resetBuildCamForTurn,
+      drawBuildGrid,
       panBuildCam
     };
   }
 
-  return { create };
+  function createWallLineController({
+    getPhase,
+    getTurn,
+    getActive,
+    getSelectedBuild,
+    getBuildPreview,
+    getWallDrawStart,
+    setWallDrawStart,
+    setWallDrawPreview,
+    buildGridPoint,
+    wallLineNodes,
+    wallSegmentsFromNodes,
+    wallLineCost,
+    canPlaceBlock,
+    makeBlock,
+    normalizeGold,
+    fmtGold,
+    rebuildWallJoints,
+    initBuildPreview,
+    updateBuildPanelUI,
+    updateUI,
+    toast,
+    terrainHeight
+  }){
+    function canPlaceWallSegment(owner,seg){
+      const buildPreview=getBuildPreview();
+      const oldRy=buildPreview.ry||0;
+      buildPreview.ry=seg.ry;
+      const ok=canPlaceBlock(owner,'wall',seg.x,seg.z,true);
+      buildPreview.ry=oldRy;
+      return ok;
+    }
+
+    function computeWallDrawPreview(){
+      const wallDrawStart=getWallDrawStart();
+      const buildPreview=getBuildPreview();
+      if(!wallDrawStart || getSelectedBuild()!=='wall'){
+        setWallDrawPreview([]);
+        return [];
+      }
+      const end=buildGridPoint(buildPreview.x,buildPreview.z);
+      const nodes=wallLineNodes(wallDrawStart,end);
+      const segs=wallSegmentsFromNodes(nodes);
+      const preview=segs.map(seg=>({...seg,ok:canPlaceWallSegment(getTurn(),seg).ok}));
+      setWallDrawPreview(preview);
+      return preview;
+    }
+
+    function startWallLine(){
+      const buildPreview=getBuildPreview();
+      const p=buildGridPoint(buildPreview.x,buildPreview.z);
+      setWallDrawStart(p);
+      computeWallDrawPreview();
+      toast('Mauer-Startpunkt gesetzt. Endpunkt wählen und ✓ drücken.');
+    }
+
+    function cancelWallLine(){
+      setWallDrawStart(null);
+      setWallDrawPreview([]);
+    }
+
+    function confirmWallLine(){
+      if(!getWallDrawStart()) {
+        startWallLine();
+        return;
+      }
+      const segs=computeWallDrawPreview();
+      if(!segs.length){ toast('Keine Mauersegmente.'); return; }
+      const bad=segs.find(s=>!s.ok);
+      if(bad){ toast('Mauerlinie blockiert oder Gelände zu uneben.'); return; }
+      const cost=wallLineCost(segs);
+      const p=getActive();
+      if(p.gold < cost){ toast(`Zu wenig Gold: ${fmtGold(cost)} benötigt.`); return; }
+
+      p.gold -= cost;
+      normalizeGold(p);
+      const built=[];
+      for(const seg of segs){
+        const b=makeBlock(getTurn(),'wall',seg.x,seg.z,0,false,{ry:seg.ry,incomeActive:false});
+        p.blocks.push(b);
+        built.push(b);
+      }
+      rebuildWallJoints(getTurn());
+      cancelWallLine();
+      initBuildPreview();
+      updateBuildPanelUI();
+      updateUI();
+      toast(`${built.length} Mauersegmente gebaut (-${fmtGold(cost)} Gold)`);
+    }
+
+    function drawWallLinePreview(VP,{ drawCube, modelCube, BUILD_GRID_UNIT }){
+      const wallDrawStart=getWallDrawStart();
+      if(getPhase()!=='build' || getSelectedBuild()!=='wall' || !wallDrawStart) return;
+      const segs=computeWallDrawPreview();
+      const y0=terrainHeight(wallDrawStart.x,wallDrawStart.z)+0.22;
+      drawCube(modelCube(wallDrawStart.x,y0,wallDrawStart.z,.70,.12,.70),[.55,1.0,.45],VP);
+      for(const seg of segs){
+        const y=terrainHeight(seg.x,seg.z)+0.10;
+        const col=seg.ok?[1.0,.82,.18]:[1.0,.15,.10];
+        drawCube(modelCube(seg.x,y,seg.z,BUILD_GRID_UNIT,.18,BUILD_GRID_UNIT),col,VP);
+      }
+    }
+
+    return {
+      canPlaceWallSegment,
+      computeWallDrawPreview,
+      startWallLine,
+      cancelWallLine,
+      confirmWallLine,
+      drawWallLinePreview
+    };
+  }
+
+  function createBuildPlacementController({
+    players,
+    getBuildPreview,
+    buildAreaSpan,
+    canPlaceWeaponOnTower,
+    groundCatapultBlock,
+    towerForWeapon,
+    footprintFor,
+    terrainFlatnessAt,
+    isWeaponBuildType,
+    wallLongAxis,
+    wallEndpoints,
+    BUILD_GRID_UNIT,
+    WALL_SEGMENT_GRID
+  }){
+    function wallSnapCandidate(owner,x,z,ry=0){
+      const p=players[owner];
+      const walls=p.blocks.filter(b=>b.type==='wall' && !b.isWallJoint);
+      if(!walls.length) return null;
+
+      const axis=wallLongAxis(ry);
+      const half=WALL_SEGMENT_GRID/2;
+      let best=null,bestD=999999;
+
+      // Neues Segment so setzen, dass einer seiner Endpunkte auf einem existierenden Endpunkt liegt.
+      for(const w of walls){
+        for(const ep of wallEndpoints(w)){
+          const candidates=[
+            [ep.x-axis[0]*half, ep.z-axis[1]*half],
+            [ep.x+axis[0]*half, ep.z+axis[1]*half]
+          ];
+          for(const c of candidates){
+            const d=(c[0]-x)*(c[0]-x)+(c[1]-z)*(c[1]-z);
+            if(d<bestD){
+              bestD=d;
+              best={x:c[0],z:c[1]};
+            }
+          }
+        }
+      }
+      return bestD < 5.8*5.8 ? best : null;
+    }
+
+    function canPlaceBlock(owner,type,x,z,ignorePreview=false){
+      const p=players[owner];
+      const area=buildAreaSpan();
+      const relX=x-p.x, relZ=z;
+      if(Math.abs(relX)>area.x/2 || Math.abs(relZ)>area.z/2) return {ok:false,msg:'Außerhalb deiner Bauzone.'};
+
+      if(type==='cannon_weapon') return canPlaceWeaponOnTower(owner,type,x,z);
+      if(type==='catapult_weapon'){
+        if(groundCatapultBlock(owner) || towerForWeapon(owner,'firecatapult')) return {ok:false,msg:'Du hast bereits ein Katapult.'};
+      }
+
+      const buildPreview=getBuildPreview();
+      const ownFoot=footprintFor(type, ignorePreview ? (buildPreview.ry||0) : 0);
+      const flatness=terrainFlatnessAt(x,z,ownFoot.w,ownFoot.d);
+      if(flatness > (type==='wall' ? 1.55 : 0.75)) return {ok:false,msg:'Gelände zu uneben.'};
+
+      for(const b of p.blocks){
+        if(type==='wall' && b.type==='wall'){
+          if(Math.abs(x-b.x)<BUILD_GRID_UNIT*0.45 && Math.abs(z-b.z)<BUILD_GRID_UNIT*0.45){
+            return {ok:false,msg:'Dort steht bereits eine Mauer.'};
+          }
+          continue;
+        }
+        const otherFoot=footprintFor(b.type,b.ry||0);
+        let pad = 0.45;
+        if(type==='wall' || b.type==='wall') pad = -0.04;
+        else if(type==='weapon_tower' || b.type==='weapon_tower') pad = 0.35;
+        else if(isWeaponBuildType(type) || isWeaponBuildType(b.type)) pad = 0.20;
+        if(Math.abs(x-b.x) < (ownFoot.w+otherFoot.w)/2 + pad && Math.abs(z-b.z) < (ownFoot.d+otherFoot.d)/2 + pad){
+          return {ok:false,msg:'Dort steht bereits etwas.'};
+        }
+      }
+      return {ok:true,msg:''};
+    }
+
+    function findNearestFreeBuildSpot(owner,type,x,z,ry=0){
+      const buildPreview=getBuildPreview();
+      const originalRy = buildPreview.ry || 0;
+      buildPreview.ry = ry;
+      if(canPlaceBlock(owner,type,x,z,true).ok){ buildPreview.ry = originalRy; return {x,z,ok:true}; }
+      const step = type==='wall' ? 3.2 : 4.0;
+      for(let ring=1; ring<=8; ring++){
+        const tries=Math.max(8,ring*8);
+        for(let k=0;k<tries;k++){
+          const a=(k/tries)*Math.PI*2;
+          const nx=x+Math.cos(a)*step*ring;
+          const nz=z+Math.sin(a)*step*ring;
+          if(canPlaceBlock(owner,type,nx,nz,true).ok){ buildPreview.ry = originalRy; return {x:nx,z:nz,ok:true}; }
+        }
+      }
+      buildPreview.ry = originalRy;
+      return {x,z,ok:false};
+    }
+
+    return {
+      wallSnapCandidate,
+      canPlaceBlock,
+      findNearestFreeBuildSpot
+    };
+  }
+
+  function createBuildFlowController({
+    $,
+    document,
+    getPhase,
+    setPhase,
+    getMode,
+    setMode,
+    getTurn,
+    getActive,
+    getSelectedBuild,
+    setBuildPanelOpen,
+    getBuildPanelOpen,
+    getBuildPreview,
+    types,
+    buildCenterWorldPoint,
+    snapBuildPosition,
+    canPlaceBlock,
+    confirmWallLine,
+    nearestEmptyWeaponTower,
+    makeBlock,
+    normalizeGold,
+    fmtGold,
+    resetBuildCamForTurn,
+    updateUI,
+    toast
+  }){
+    function centerBuildPreview(){
+      const hit=buildCenterWorldPoint();
+      const turn=getTurn();
+      const selectedBuild=getSelectedBuild();
+      const buildPreview=getBuildPreview();
+      const pos=snapBuildPosition(turn,hit[0],hit[2],selectedBuild);
+      buildPreview.x=pos.x;
+      buildPreview.z=pos.z;
+      buildPreview.valid=canPlaceBlock(turn,selectedBuild,buildPreview.x,buildPreview.z,true).ok;
+    }
+
+    function initBuildPreview(){
+      centerBuildPreview();
+      const buildPreview=getBuildPreview();
+      if(buildPreview.valid) return;
+      const p=getActive();
+      const turn=getTurn();
+      const selectedBuild=getSelectedBuild();
+      const candidates=[
+        {x:p.x+14,z:0},{x:p.x-14,z:0},{x:p.x+0,z:16},{x:p.x+0,z:-16},
+        {x:p.x+22,z:18},{x:p.x-22,z:-18},{x:p.x+22,z:-18},{x:p.x-22,z:18},
+        {x:p.x+30,z:0},{x:p.x-30,z:0},{x:p.x,z:24},{x:p.x,z:-24}
+      ];
+      for(const c of candidates){
+        const pos=snapBuildPosition(turn,c.x,c.z,selectedBuild);
+        if(canPlaceBlock(turn,selectedBuild,pos.x,pos.z,true).ok){
+          buildPreview.x=pos.x; buildPreview.z=pos.z; buildPreview.valid=true; return;
+        }
+      }
+      buildPreview.valid=false;
+    }
+
+    function rotateBuildPreview(){
+      const selectedBuild=getSelectedBuild();
+      const buildPreview=getBuildPreview();
+      if(selectedBuild==='wall'){
+        buildPreview.ry = Math.abs((buildPreview.ry||0) - Math.PI/2) < 0.01 ? 0 : Math.PI/2;
+      }else{
+        buildPreview.ry = ((buildPreview.ry||0)+Math.PI/2)%(Math.PI*2);
+      }
+      buildPreview.valid=canPlaceBlock(getTurn(),selectedBuild,buildPreview.x,buildPreview.z,true).ok;
+      updateUI();
+    }
+
+    function confirmBuildPreview(){
+      if(getPhase()!=='build') return;
+      const selectedBuild=getSelectedBuild();
+      if(selectedBuild==='wall'){
+        confirmWallLine();
+        return;
+      }
+      const turn=getTurn();
+      const p=getActive();
+      const t=types[selectedBuild];
+      const buildPreview=getBuildPreview();
+      const check=canPlaceBlock(turn,selectedBuild,buildPreview.x,buildPreview.z,true);
+      if(!check.ok){ toast(check.msg||'Position ungültig.'); return; }
+      if(p.gold < t.cost){ toast(`Zu wenig Gold: ${fmtGold(t.cost)} benötigt.`); return; }
+
+      p.gold -= t.cost;
+      normalizeGold(p);
+
+      if(selectedBuild==='cannon_weapon'){
+        const tower=check.tower || nearestEmptyWeaponTower(turn,buildPreview.x,buildPreview.z,'cannon');
+        if(!tower){ toast('Kein freier Waffenturm für Kanone.'); updateUI(); return; }
+        tower.weaponSlot='cannon';
+        tower.hasWeapon='cannon';
+        p.cannonAlive=true;
+        toast(`Kanone gebaut (-${fmtGold(t.cost)} Gold)`);
+      }else if(selectedBuild==='catapult_weapon'){
+        p.blocks.push(makeBlock(turn,'catapult_weapon',buildPreview.x,buildPreview.z,0,false,{incomeActive:false}));
+        p.catapultAlive=true;
+        toast(`Katapult gebaut (-${fmtGold(t.cost)} Gold)`);
+      }else if(selectedBuild==='weapon_tower'){
+        p.blocks.push(makeBlock(turn,'weapon_tower',buildPreview.x,buildPreview.z,0,false,{incomeActive:false,isWeaponTower:true}));
+        toast(`Waffenturm gebaut (-${fmtGold(t.cost)} Gold)`);
+      }else{
+        const b=makeBlock(turn,selectedBuild,buildPreview.x,buildPreview.z,0,false,{ry:buildPreview.ry||0});
+        p.blocks.push(b);
+        toast(`${t.label} gebaut (-${fmtGold(t.cost)} Gold)`);
+      }
+
+      initBuildPreview();
+      updateBuildPanelUI();
+      updateUI();
+    }
+
+    function updateBuildPanelUI(){
+      const panel=$('buildPanel');
+      const buildPanelOpen=getBuildPanelOpen();
+      const phase=getPhase();
+      const selectedBuild=getSelectedBuild();
+      if(panel) panel.classList.toggle('hidden', !buildPanelOpen);
+      document.querySelectorAll('.buildChoice').forEach(btn=>{
+        btn.classList.toggle('active', !!btn.dataset.type && btn.dataset.type===selectedBuild);
+      });
+      if($('buildBtn')){
+        $('buildBtn').classList.toggle('active', buildPanelOpen || phase==='build');
+        $('buildBtn').textContent = buildPanelOpen ? (types[selectedBuild]?.icon || '🏗️') : '🏗️';
+      }
+      const ownMapBox = $('mapOwn')?.parentElement;
+      if(ownMapBox) ownMapBox.classList.toggle('buildTarget', phase==='build');
+      const tools=$('buildTools');
+      if(tools) tools.classList.toggle('hidden', phase!=='build');
+      document.body.classList.toggle('building', phase==='build');
+    }
+
+    function toggleBuildMode(forceState=null){
+      const open = forceState===null ? !getBuildPanelOpen() : !!forceState;
+      setBuildPanelOpen(open);
+      setPhase(open ? 'build' : 'shoot');
+      if(open){
+        setMode('buildcam');
+        resetBuildCamForTurn();
+        initBuildPreview();
+      }else if(getMode()==='buildcam' || getMode()==='bird'){
+        setMode('cannon');
+      }
+      updateBuildPanelUI();
+      updateUI();
+      if(open) toast(`Bauen: An der Tatze ziehen = Objekt verschieben. Sonst bewegst du die Kamera.`);
+    }
+
+    return {
+      centerBuildPreview,
+      initBuildPreview,
+      rotateBuildPreview,
+      confirmBuildPreview,
+      updateBuildPanelUI,
+      toggleBuildMode
+    };
+  }
+
+  return { create, createWallLineController, createBuildPlacementController, createBuildFlowController };
 })();
