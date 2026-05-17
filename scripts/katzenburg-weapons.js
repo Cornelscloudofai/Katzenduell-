@@ -41,6 +41,86 @@ window.KATZENBURG_WEAPONS = (() => {
     };
   }
 
+  function createAccessors({
+    players,
+    weaponTypes,
+    getTurn,
+    terrainHeight,
+    loadWeaponState,
+    switchWeapon,
+    updateUI,
+    toast
+  }){
+    function baseYaw(i=getTurn()){return i===0?0:180}
+    function active(){return players[getTurn()]}
+    function enemyIndex(){return 1-getTurn()}
+    function currentWeapon(i=getTurn()){return players[i].weapon || 'cannon'}
+    function isWeaponBuildType(type){return type==='cannon_weapon'||type==='catapult_weapon'}
+    function weaponTypeForBuild(type){return type==='cannon_weapon'?'cannon':(type==='catapult_weapon'?'firecatapult':null)}
+    function weaponLabel(type){return type==='cannon'?'Kanone':'Katapult'}
+    function setPlayerWeaponState(p,weapon,alive){ if(weapon==='firecatapult') p.catapultAlive=alive; else p.cannonAlive=alive; }
+    function towerForWeapon(i=getTurn(), weapon=currentWeapon(i)){
+      const p=players[i];
+      return p.blocks.find(b=>b.isWeaponTower && b.weaponSlot===weapon && b.hp>0) || null;
+    }
+    function groundCatapultBlock(i=getTurn()){
+      return players[i].blocks.find(b=>b.type==='catapult_weapon' && b.hp>0) || null;
+    }
+    function weaponAvailable(i=getTurn(), weapon=currentWeapon(i)){
+      const p=players[i];
+      if(weapon==='cannon') return p.cannonAlive!==false && !!towerForWeapon(i,'cannon');
+      if(weapon==='firecatapult') return p.catapultAlive!==false && (!!towerForWeapon(i,'firecatapult') || !!groundCatapultBlock(i));
+      return false;
+    }
+    function ensureActiveWeaponAvailable(i=getTurn()){
+      const p=players[i];
+      if(weaponAvailable(i,currentWeapon(i))) return;
+      if(weaponAvailable(i,'cannon')){ p.weapon='cannon'; loadWeaponState(p,'cannon'); return; }
+      if(weaponAvailable(i,'firecatapult')){ p.weapon='firecatapult'; loadWeaponState(p,'firecatapult'); return; }
+    }
+    function weaponOrder(){return ['cannon','firecatapult']}
+    function switchWeaponStep(dir=1){
+      const order=weaponOrder();
+      const turn=getTurn();
+      const idx=Math.max(0,order.indexOf(currentWeapon(turn)));
+      switchWeapon(order[(idx+dir+order.length)%order.length]);
+      updateUI();
+      toast(currentWeapon(turn)==='firecatapult'?'Waffe: Feuerkatapult':'Waffe: Kanone');
+    }
+    function weaponSlotBlock(i=getTurn(), weapon=currentWeapon(i)){
+      const p=players[i];
+      const tower=towerForWeapon(i,weapon);
+      if(tower) return tower;
+      if(weapon==='firecatapult'){
+        const ground=groundCatapultBlock(i);
+        if(ground) return ground;
+      }
+      return p.blocks.find(b=>b.main) || {x:p.x,z:p.z,y:terrainHeight(p.x,0),h:5};
+    }
+    function weaponCfg(i=getTurn()){return weaponTypes[currentWeapon(i)] || weaponTypes.cannon}
+    function isFireWeapon(i=getTurn()){return currentWeapon(i)==='firecatapult'}
+
+    return {
+      baseYaw,
+      active,
+      enemyIndex,
+      currentWeapon,
+      isWeaponBuildType,
+      weaponTypeForBuild,
+      weaponLabel,
+      setPlayerWeaponState,
+      towerForWeapon,
+      groundCatapultBlock,
+      weaponAvailable,
+      ensureActiveWeaponAvailable,
+      weaponOrder,
+      switchWeaponStep,
+      weaponSlotBlock,
+      weaponCfg,
+      isFireWeapon
+    };
+  }
+
   function create({ players, getTurn, getActive, getCurrentWeapon, clamp, $ }){
     function ensureCameraRenderState(s){
       if(typeof s.camSide!=='number') s.camSide=0;
@@ -129,5 +209,5 @@ window.KATZENBURG_WEAPONS = (() => {
     };
   }
 
-  return { create };
+  return { create, createAccessors };
 })();
