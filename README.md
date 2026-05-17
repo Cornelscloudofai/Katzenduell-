@@ -17,17 +17,21 @@ Dieses Repository enthält aktuell einen lauffähigen Browser-Spielprototyp mit 
 - `scripts/katzenburg-fx.js`
 - `scripts/katzenburg-terrain.js`
 - `scripts/katzenburg-weapons.js`
+- `scripts/katzenburg-projectile.js`
+- `scripts/katzenburg-turns.js`
+- `scripts/katzenburg-loop.js`
 - `scripts/katzenburg-shaders.js`
 - `scripts/katzenburg-geometry.js`
 - `scripts/katzenburg-webgl.js`
 - `scripts/katzenburg-terrain-renderer.js`
+- `scripts/katzenburg-wall-renderer.js`
 - `scripts/katzenburg-map.js`
 - `scripts/katzenburg-input.js`
 - `scripts/katzenburg-bindings.js`
 - `scripts/katzenburg-ui.js`
 - `scripts/katzenburg-dom.js`
 
-Die HTML-Datei bleibt der direkt öffnbare Einstiegspunkt. CSS, Konfigurationsdaten, allgemeine Mathematik-/Matrix-Helfer, Terrain-Helfer, Terrain-Rendering, Minikarten-Rendering, Eingabe-/Kamera-Bindings, allgemeine UI-Bindings, Waffen-/Kamera-Helfer, Schadens-/Blockzustandslogik, Baukamera-/Raycast-/Griffpunkt-/Mauerlinien-/Footprint-/Waffenturm-/Snap-/Vorschau-/Platzierungs-Helfer, Ziel-/Projektilpositions-Helfer, Burg-/Block-Erzeugung und die statische HUD-/Bedienoberfläche sind inzwischen in externe Dateien ausgelagert. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
+Die HTML-Datei bleibt der direkt öffnbare Einstiegspunkt. CSS, Konfigurationsdaten, allgemeine Mathematik-/Matrix-Helfer, Terrain-Helfer, Terrain-Rendering, Minikarten-Rendering, Eingabe-/Kamera-Bindings, allgemeine UI-Bindings, Waffen-/Kamera-Helfer, Projektil-/Trefferlogik, Runden-/Reset-Flow, Frame-/Resize-Loop, Schadens-/Blockzustandslogik, Baukamera-/Raycast-/Griffpunkt-/Mauerlinien-/Footprint-/Waffenturm-/Snap-/Vorschau-/Platzierungs-Helfer, Ziel-/Projektilpositions-Helfer, Burg-/Block-Erzeugung und die statische HUD-/Bedienoberfläche sind inzwischen in externe Dateien ausgelagert. Externe Build-Schritte, Paketverwaltung oder zusätzliche Asset-Dateien sind im aktuellen Repository-Stand nicht erforderlich. Der Code erzeugt eine WebGL-Szene direkt im Browser und zeigt bei fehlender WebGL-Unterstützung eine Fehlermeldung an.
 
 Der Dateiname und der `<title>` sprechen von **„Katzenburg-Duell V132 – 1x1-Mauer-Schäden“**. Innerhalb der sichtbaren HUD-Texte stehen jedoch noch mehrere Verweise auf **V112**. Das deutet darauf hin, dass die Datei funktional weiterentwickelt wurde, die Anzeige-Texte im Spiel aber noch nicht vollständig auf die Dateiversion synchronisiert sind.
 
@@ -40,7 +44,7 @@ Die HTML-Datei ist der zentrale Spielstand und die aktuelle Arbeitsbasis des Pro
 - Spieler können schießen, bauen, reparieren und zwischen Kameraperspektiven wechseln.
 - Die komplette Darstellung läuft über ein WebGL-Canvas.
 - Eingebaute Base64-/JavaScript-Assets ersetzen externe 3D-Asset-Dateien.
-- Allgemeine Vektor-, Zufalls- und Matrixfunktionen liegen in `scripts/katzenburg-math.js`; Terrain-Helfer liegen in `scripts/katzenburg-terrain.js`; Terrain-Rendering liegt in `scripts/katzenburg-terrain-renderer.js`; Minikarten-Rendering liegt in `scripts/katzenburg-map.js`; Eingabe- und Kamera-Bindings liegen in `scripts/katzenburg-input.js`; allgemeine UI-Bindings liegen in `scripts/katzenburg-bindings.js`; Waffen-/Kamera-Helfer liegen in `scripts/katzenburg-weapons.js`; Schadens- und Blockzustandshelfer liegen in `scripts/katzenburg-damage.js`; Baukamera-, Raycast-, Griffpunkt-, Mauerlinien-, Footprint-, Waffenturm-, Snap-, Vorschau- und Platzierungs-Helfer liegen in `scripts/katzenburg-build.js`; Zielrichtung, Kamera-Zielrichtung und Waffenmündungsposition liegen in `scripts/katzenburg-aim.js`; Burg-Startaufbau und Block-Erzeugung liegen in `scripts/katzenburg-castle.js`; die statische HUD-/Bedienoberfläche liegt in `scripts/katzenburg-ui.js`, damit die HTML-Datei weiter entlastet wird.
+- Allgemeine Vektor-, Zufalls- und Matrixfunktionen liegen in `scripts/katzenburg-math.js`; Terrain-Helfer liegen in `scripts/katzenburg-terrain.js`; Terrain-Rendering liegt in `scripts/katzenburg-terrain-renderer.js`; Mauer-Connector-Rendering liegt in `scripts/katzenburg-wall-renderer.js`; Minikarten-Rendering liegt in `scripts/katzenburg-map.js`; Eingabe- und Kamera-Bindings liegen in `scripts/katzenburg-input.js`; allgemeine UI-Bindings liegen in `scripts/katzenburg-bindings.js`; Waffen-/Kamera-Helfer liegen in `scripts/katzenburg-weapons.js`; Projektilflug, Treffer und Einschlagabwicklung liegen in `scripts/katzenburg-projectile.js`; Rundenwechsel und Spielreset liegen in `scripts/katzenburg-turns.js`; Frame-Loop und Canvas-Resize liegen in `scripts/katzenburg-loop.js`; Schadens- und Blockzustandshelfer liegen in `scripts/katzenburg-damage.js`; Baukamera-, Raycast-, Griffpunkt-, Mauerlinien-, Footprint-, Waffenturm-, Snap-, Vorschau- und Platzierungs-Helfer liegen in `scripts/katzenburg-build.js`; Zielrichtung, Kamera-Zielrichtung und Waffenmündungsposition liegen in `scripts/katzenburg-aim.js`; Burg-Startaufbau und Block-Erzeugung liegen in `scripts/katzenburg-castle.js`; die statische HUD-/Bedienoberfläche liegt in `scripts/katzenburg-ui.js`, damit die HTML-Datei weiter entlastet wird.
 
 Kurz gesagt: Die HTML-Datei ist nicht nur eine Webseite, sondern die komplette Spielimplementierung inklusive UI, Rendering, Spielregeln, Assets und Hauptschleife.
 
