@@ -21,8 +21,8 @@ window.KATZENBURG_CASTLE = (() => {
       // V131: Startburg aus 1x1-Mauerblöcken, lückenlos im feinen Raster.
       const wallStep=BUILD_GRID_UNIT;
       for(let z=-halfZ; z<=halfZ+0.001; z+=wallStep){
-        p.blocks.push(makeBlock(i,'wall',frontX,z,0,false,{ry:0,incomeActive:false}));
-        p.blocks.push(makeBlock(i,'wall',rearX,z,0,false,{ry:0,incomeActive:false}));
+        p.blocks.push(makeBlock(i,'wall',frontX,z,0,false,{ry:Math.PI/2,incomeActive:false}));
+        p.blocks.push(makeBlock(i,'wall',rearX,z,0,false,{ry:Math.PI/2,incomeActive:false}));
       }
       for(let dx=-halfX; dx<=halfX+0.001; dx+=wallStep){
         p.blocks.push(makeBlock(i,'wall',baseX+dir*dx,halfZ,0,false,{ry:0,incomeActive:false}));

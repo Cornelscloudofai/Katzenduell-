@@ -121,7 +121,12 @@ window.KATZENBURG_BUILD = (() => {
       return nodes;
     }
 
-    function wallSegmentsFromNodes(nodes){ return nodes.map(n=>({x:n.x,z:n.z,ry:0})); }
+    function wallSegmentsFromNodes(nodes){
+      const dx=(nodes[nodes.length-1]?.x ?? 0) - (nodes[0]?.x ?? 0);
+      const dz=(nodes[nodes.length-1]?.z ?? 0) - (nodes[0]?.z ?? 0);
+      const ry=Math.abs(dz)>Math.abs(dx) ? Math.PI/2 : 0;
+      return nodes.map(n=>({x:n.x,z:n.z,ry}));
+    }
 
     function wallLineCost(segs){ return segs.length; }
 
@@ -440,6 +445,153 @@ window.KATZENBURG_BUILD = (() => {
     };
   }
 
+
+  function createWallGeometryController({
+    players,
+    types,
+    terrainHeight,
+    makeBlock,
+    WALL_SEGMENT_GRID
+  }){
+    const WALL_NODE_PRECISION = 1000;
+
+    function wallLongAxis(ry=0){
+      return Math.abs(Math.sin(ry||0)) > 0.5 ? [0,1] : [1,0];
+    }
+
+    function isPerpendicularWall(a,b){
+      const aa=wallLongAxis(a.ry||0), bb=wallLongAxis(b.ry||0);
+      return Math.abs(aa[0]*bb[0]+aa[1]*bb[1]) < 0.2;
+    }
+
+    function wallEndpoints(w){
+      const ax=wallLongAxis(w.ry||0);
+      const half=WALL_SEGMENT_GRID/2;
+      return [
+        {x:w.x+ax[0]*half,z:w.z+ax[1]*half,dir:[-ax[0],-ax[1]]},
+        {x:w.x-ax[0]*half,z:w.z-ax[1]*half,dir:[ ax[0], ax[1]]}
+      ];
+    }
+
+    function dirKey(d){
+      if(Math.abs(d[0])>Math.abs(d[1])) return d[0]>0?'E':'W';
+      return d[1]>0?'S':'N';
+    }
+
+    function wallJointKindFromDirs(keys){
+      const s=new Set(keys);
+      const n=s.has('N'), e=s.has('E'), so=s.has('S'), w=s.has('W');
+      const c=s.size;
+      if(c>=4) return 'cross';
+      if(c===3) return 't';
+      if(c===2){
+        if((n&&so)||(e&&w)) return 'straight';
+        return 'corner';
+      }
+      return 'end';
+    }
+
+    function wallConnectorKeyFromDirs(dirs){
+      const s=new Set(dirs||[]);
+      const n=s.has('N'), e=s.has('E'), so=s.has('S'), w=s.has('W');
+      const count=[n,e,so,w].filter(Boolean).length;
+      if(count>=4) return 'wall_cross';
+      if(count===3){
+        if(n&&e&&so) return 'wall_t_NES';
+        if(e&&so&&w) return 'wall_t_ESW';
+        if(so&&w&&n) return 'wall_t_SWN';
+        if(w&&n&&e) return 'wall_t_WNE';
+      }
+      if(count===2){
+        if(n&&so) return 'wall_straight_NS';
+        if(e&&w) return 'wall_straight_EW';
+        if(n&&e) return 'wall_corner_NE';
+        if(e&&so) return 'wall_corner_ES';
+        if(so&&w) return 'wall_corner_SW';
+        if(w&&n) return 'wall_corner_WN';
+      }
+      if(count===1){
+        if(n) return 'wall_end_N';
+        if(so) return 'wall_end_N';
+        if(e) return 'wall_cell_1x1';
+        if(w) return 'wall_cell_1x1';
+      }
+      return 'wall_cross';
+    }
+
+    function wallConnectorRotationForDirs(dirs){
+      const s=new Set(dirs||[]);
+      const n=s.has('N'), e=s.has('E'), so=s.has('S'), w=s.has('W');
+      const count=[n,e,so,w].filter(Boolean).length;
+      if(count===1){
+        if(so) return Math.PI;
+        if(e) return 0;
+        if(w) return Math.PI;
+        return 0;
+      }
+      return 0;
+    }
+
+    function makeWallJointBlock(owner,x,z,dirs,kind){
+      return makeBlock(owner,'wall',x,z,terrainHeight(x,z),false,{
+        ry:0,incomeActive:false,isWallJoint:true,wallJointKind:kind,wallDirs:dirs,
+        w:1.12,d:1.12,h:types.wall.h,hp:types.wall.hp,maxHp:types.wall.hp,connectorKey:wallConnectorKeyFromDirs(dirs)
+      });
+    }
+
+    function nodeKey(x,z){
+      return `${Math.round(x*WALL_NODE_PRECISION)}:${Math.round(z*WALL_NODE_PRECISION)}`;
+    }
+
+    function rebuildWallJoints(owner){
+      const p=players[owner];
+      if(!p) return 0;
+
+      p.blocks = p.blocks.filter(b=>!(b.type==='wall' && b.isWallJoint));
+
+      const nodes=new Map();
+      for(const wall of p.blocks){
+        if(wall.type!=='wall' || wall.hp<=0 || wall.isWallJoint) continue;
+        for(const ep of wallEndpoints(wall)){
+          const key=nodeKey(ep.x,ep.z);
+          let node=nodes.get(key);
+          if(!node){
+            node={x:ep.x,z:ep.z,dirs:new Set()};
+            nodes.set(key,node);
+          }
+          node.dirs.add(dirKey(ep.dir));
+        }
+      }
+
+      let added=0;
+      for(const node of nodes.values()){
+        const dirs=[...node.dirs].sort();
+        if(!dirs.length) continue;
+        const kind=wallJointKindFromDirs(dirs);
+        p.blocks.push(makeWallJointBlock(owner,node.x,node.z,dirs,kind));
+        added++;
+      }
+      return added;
+    }
+
+    function addWallCornerFills(owner){
+      return rebuildWallJoints(owner);
+    }
+
+    return {
+      wallLongAxis,
+      isPerpendicularWall,
+      wallEndpoints,
+      makeWallJointBlock,
+      dirKey,
+      wallJointKindFromDirs,
+      wallConnectorKeyFromDirs,
+      wallConnectorRotationForDirs,
+      rebuildWallJoints,
+      addWallCornerFills
+    };
+  }
+
   function createBuildPlacementController({
     players,
     getBuildPreview,
@@ -703,5 +855,5 @@ window.KATZENBURG_BUILD = (() => {
     };
   }
 
-  return { create, createWallLineController, createBuildPlacementController, createBuildFlowController };
+  return { create, createWallLineController, createWallGeometryController, createBuildPlacementController, createBuildFlowController };
 })();
